@@ -1,5 +1,5 @@
 module "s3_bucket" {
-  source = "./aws-s3"
+  source = "./terraform-aws-s3-bucket"
 
   bucket = var.bucket
   acl    = var.acl

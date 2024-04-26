@@ -1,7 +1,7 @@
 module "msk_kafka_cluster" {
   source = "./terraform-aws-msk-kafka-cluster"
 
-  name                   = local.name
+  name                   = var.name
   kafka_version          = "3.5.1"
   number_of_broker_nodes = 3
   enhanced_monitoring    = "PER_TOPIC_PER_PARTITION"
@@ -28,7 +28,7 @@ module "msk_kafka_cluster" {
   cloudwatch_logs_enabled = true
   s3_logs_enabled         = true
   s3_logs_bucket          = "aws-msk-kafka-cluster-logs"
-  s3_logs_prefix          = local.name
+  s3_logs_prefix          = var.name
 
   scaling_max_capacity = 512
   scaling_target_value = 80
@@ -42,63 +42,64 @@ module "msk_kafka_cluster" {
     aws_secretsmanager_secret.two.arn,
   ]
 
-  # AWS Glue Registry
-  schema_registries = {
-    team_a = {
-      name        = "team_a"
-      description = "Schema registry for Team A"
-    }
-    team_b = {
-      name        = "team_b"
-      description = "Schema registry for Team B"
-    }
-  }
+  # # AWS Glue Registry
+  # schema_registries = {
+  #   team_a = {
+  #     name        = "team_a"
+  #     description = "Schema registry for Team A"
+  #   }
+  #   team_b = {
+  #     name        = "team_b"
+  #     description = "Schema registry for Team B"
+  #   }
+  # }
 
-  # AWS Glue Schemas
-  schemas = {
-    team_a_tweets = {
-      schema_registry_name = "team_a"
-      schema_name          = "tweets"
-      description          = "Schema that contains all the tweets"
-      compatibility        = "FORWARD"
-      schema_definition    = "{\"type\": \"record\", \"name\": \"r1\", \"fields\": [ {\"name\": \"f1\", \"type\": \"int\"}, {\"name\": \"f2\", \"type\": \"string\"} ]}"
-      tags                 = { Team = "Team A" }
-    }
-    team_b_records = {
-      schema_registry_name = "team_b"
-      schema_name          = "records"
-      description          = "Schema that contains all the records"
-      compatibility        = "FORWARD"
-      team_b_records = {
-        schema_registry_name = "team_b"
-        schema_name          = "records"
-        description          = "Schema that contains all the records"
-        compatibility        = "FORWARD"
-        schema_definition = jsonencode({
-          type = "record"
-          name = "r1"
-          fields = [
-            {
-              name = "f1"
-              type = "int"
-            },
-            {
-              name = "f2"
-              type = "string"
-            },
-            {
-              name = "f3"
-              type = "boolean"
-            }
-          ]
-        })
-        tags = { Team = "Team B" }
-      }
-    }
-  }
+  # # AWS Glue Schemas
+  # schemas = {
+  #   team_a_tweets = {
+  #     schema_registry_name = "team_a"
+  #     schema_name          = "tweets"
+  #     description          = "Schema that contains all the tweets"
+  #     compatibility        = "FORWARD"
+  #     schema_definition    = "{\"type\": \"record\", \"name\": \"r1\", \"fields\": [ {\"name\": \"f1\", \"type\": \"int\"}, {\"name\": \"f2\", \"type\": \"string\"} ]}"
+  #     tags                 = { Team = "Team A" }
+  #   }
+  #   team_b_records = {
+  #     schema_registry_name = "team_b"
+  #     schema_name          = "records"
+  #     description          = "Schema that contains all the records"
+  #     compatibility        = "FORWARD"
+  #     team_b_records = {
+  #       schema_registry_name = "team_b"
+  #       schema_name          = "records"
+  #       description          = "Schema that contains all the records"
+  #       compatibility        = "FORWARD"
+  #       schema_definition = jsonencode({
+  #         type = "record"
+  #         name = "r1"
+  #         fields = [
+  #           {
+  #             name = "f1"
+  #             type = "int"
+  #           },
+  #           {
+  #             name = "f2"
+  #             type = "string"
+  #           },
+  #           {
+  #             name = "f3"
+  #             type = "boolean"
+  #           }
+  #         ]
+  #       })
+  #       tags = { Team = "Team B" }
+  #     }
+  #   }
+  # }
 
   tags = {
     Terraform   = "true"
     Environment = "dev"
   }
 }
+
