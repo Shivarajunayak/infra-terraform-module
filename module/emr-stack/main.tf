@@ -1,5 +1,5 @@
 module "emr" {
-  source = "terraform-aws-modules/emr/aws"
+  source = "./terraform-aws-emr"
 
   name = "example-instance-fleet"
 

@@ -1,0 +1,131 @@
+#
+# This is the canonical configuration for the `README.md`
+# Run `make readme` to rebuild the `README.md`
+#
+
+# Name of this project
+name: terraform-aws-lakeformation
+
+# Logo for this project
+#logo: docs/logo.png
+
+# License of this project
+license: "APACHE2"
+
+# Copyrights
+copyrights:
+  - name: "Cloud Posse, LLC"
+    url: "https://cloudposse.com"
+    year: "2021"
+
+# Canonical GitHub repo
+github_repo: cloudposse/terraform-aws-lakeformation
+
+# Badges to display
+badges:
+  - name: Latest Release
+    image: https://img.shields.io/github/release/cloudposse/terraform-aws-lakeformation.svg?style=for-the-badge
+    url: https://github.com/cloudposse/terraform-aws-lakeformation/releases/latest
+  - name: Last Updated
+    image: https://img.shields.io/github/last-commit/cloudposse/terraform-aws-lakeformation.svg?style=for-the-badge
+    url: https://github.com/cloudposse/terraform-aws-lakeformation/commits
+  - name: Slack Community
+    image: https://slack.cloudposse.com/for-the-badge.svg
+    url: https://slack.cloudposse.com
+
+# List any related terraform modules that this module may be used with or that this module depends on.
+related:
+  - name: "terraform-null-label"
+    description: "Terraform module designed to generate consistent names and tags for resources. Use terraform-null-label to implement a strict naming convention."
+    url: "https://github.com/cloudposse/terraform-null-label"
+
+# List any resources helpful for someone to get started. For example, link to the hashicorp documentation or AWS documentation.
+references:
+
+# Short description of this project
+description: |-
+  Terraform module to deploy an instance of [Amazon Lake Formation](https://aws.amazon.com/lake-formation/) on AWS.
+
+
+# How to use this module. Should be an easy example to copy and paste.
+usage: |-
+  For a complete example, see [examples/complete](examples/complete).
+
+  For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest)
+  (which tests and deploys the example on AWS), see [test](test).
+
+  ```hcl
+  # So we can assign admin permissions to the current user
+  data "aws_caller_identity" "current" {}
+
+  # Use this if a service-linked role already exists, otherwise it must be created
+  data "aws_iam_role" "lakeformation" {
+    name = "AWSServiceRoleForLakeFormationDataAccess"
+  }
+
+  # Create a bucket to store Lake Formation data
+  module "s3_bucket" {
+    source  = "cloudposse/s3-bucket/aws"
+    # Cloud Posse recommends pinning every module to a specific version, though usually you want to use the current one
+    # version = "x.x.x"
+
+    acl                = "private"
+    versioning_enabled = false
+    force_destroy      = true # Be careful with this!
+
+    context = module.this.context
+  }
+
+  # Create an Athena database linked to an S3 bucket
+  resource "aws_athena_database" "default" {
+    count = module.this.enabled ? 1 : 0
+
+    name   = var.resources.database.name
+    bucket = module.s3_bucket.bucket_id
+
+    force_destroy = true
+  }
+
+  # Create a standard label resource. See [null-label](https://github.com/cloudposse/terraform-null-label/#terraform-null-label--)
+  module "label" {
+    source  = "cloudposse/label/null"
+    # Cloud Posse recommends pinning every module to a specific version, though usually you want to use the current one
+    # version = "x.x.x"
+
+    namespace = "eg"
+    name      = "example"
+  }
+
+  module "lakeformation" {
+    source  = "cloudposse/lakeformation/aws"
+    # Cloud Posse recommends pinning every module to a specific version
+    # version = "x.x.x"
+
+    s3_bucket_arn = module.s3_bucket.bucket_arn
+
+    lf_tags = {
+      left = ["test1", "test2"]
+      right = ["test3", "test4"]
+    }
+
+    resources = {
+        database = {
+            name = "example_db_1" # Athena database created above
+            tags = {
+              left = "test1"
+            }
+        }
+    }
+
+    context = module.label.this
+  }
+  ```
+
+
+# Other files to include in this README from the project folder
+include:
+  - "docs/targets.md"
+  - "docs/terraform.md"
+
+# Contributors to this project
+contributors: []
