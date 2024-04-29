@@ -1,5 +1,5 @@
 module "eventbridge" {
-  source = "terraform-aws-modules/eventbridge/aws"
+  source = "./terraform-aws-eventbridge"
 
   bus_name = "my-bus"
 
