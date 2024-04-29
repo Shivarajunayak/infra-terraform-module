@@ -1,29 +1,6 @@
-provider "aws" {
-  region = local.region
-}
-
-data "aws_availability_zones" "available" {}
-
-locals {
-  region = "eu-west-1"
-  name   = "ex-${basename(path.cwd)}"
-
-  vpc_cidr = "10.0.0.0/16"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
-
-  tags = {
-    Name       = local.name
-    Example    = local.name
-    Repository = "https://github.com/terraform-aws-modules/terraform-aws-opensearch"
-  }
-}
-
-################################################################################
-# OpenSearch Module
-################################################################################
-
 module "opensearch" {
-  source = "../.."
+  source = "./terraform-aws-opensearch"
+
 
   # Domain
   advanced_options = {
@@ -76,7 +53,7 @@ module "opensearch" {
     tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
   }
 
-  domain_name = local.name
+  domain_name = var.domain_name
 
   ebs_options = {
     ebs_enabled = true
@@ -106,25 +83,13 @@ module "opensearch" {
   }
 
   vpc_options = {
-    subnet_ids = module.vpc.private_subnets
+    subnet_ids = ["subnet-abcde012", "subnet-bcde012a", "subnet-fghi345a"]
   }
 
   # VPC endpoint
   vpc_endpoints = {
     one = {
-      subnet_ids = module.vpc.private_subnets
-    }
-  }
-
-  # Security Group rule example
-  security_group_rules = {
-    ingress_443 = {
-      type        = "ingress"
-      description = "HTTPS access from VPC"
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      cidr_ipv4   = local.vpc_cidr
+      subnet_ids = ["subnet-abcde012", "subnet-bcde012a", "subnet-fghi345a"]
     }
   }
 
@@ -148,29 +113,8 @@ module "opensearch" {
     }
   ]
 
-  tags = local.tags
-}
-
-module "opensearch_disabled" {
-  source = "../.."
-
-  create = false
-}
-
-################################################################################
-# Supporting Resources
-################################################################################
-
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
-
-  name = local.name
-  cidr = local.vpc_cidr
-
-  azs             = local.azs
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 10)]
-
-  tags = local.tags
+  tags = {
+    Terraform   = "true"
+    Environment = "dev"
+  }
 }

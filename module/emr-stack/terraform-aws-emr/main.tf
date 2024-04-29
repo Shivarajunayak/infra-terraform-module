@@ -39,15 +39,15 @@ resource "aws_emr_cluster" "this" {
 
   autoscaling_role = local.create_autoscaling_iam_role ? aws_iam_role.autoscaling[0].arn : var.autoscaling_iam_role_arn
 
-  dynamic "bootstrap_action" {
-    for_each = var.bootstrap_action
+  # dynamic "bootstrap_action" {
+  #   for_each = var.bootstrap_action
 
-    content {
-      args = try(bootstrap_action.value.args, null)
-      name = bootstrap_action.value.name
-      path = bootstrap_action.value.path
-    }
-  }
+  #   content {
+  #     args = try(bootstrap_action.value.args, null)
+  #     name = bootstrap_action.value.name
+  #     path = bootstrap_action.value.path
+  #   }
+  # }
 
   configurations      = var.configurations
   configurations_json = var.configurations_json
